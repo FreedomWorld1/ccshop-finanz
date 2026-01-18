@@ -23,7 +23,7 @@
             border: 2px solid #334155;
         }
         
-        input {
+        input, button {
             width: 100%;
             padding: 12px;
             margin: 8px 0;
@@ -35,25 +35,13 @@
         }
         
         button {
-            width: 100%;
-            padding: 15px;
-            margin: 8px 0;
+            background: #10b981;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            color: white;
-            transition: 0.3s;
         }
         
-        button:hover { opacity: 0.9; transform: translateY(-2px); }
-        
-        .btn-save { background: #10b981; }
-        .btn-load { background: #3b82f6; }
-        .btn-hold { background: #8b5cf6; }
-        .btn-deposit { background: #22c55e; }
-        .btn-withdraw { background: #ef4444; }
+        button:hover { opacity: 0.9; }
         
         .balance-box {
             background: #1e293b;
@@ -61,7 +49,6 @@
             border-radius: 15px;
             text-align: center;
             margin: 20px 0;
-            border: 2px solid #475569;
         }
         
         .balance-amount {
@@ -70,406 +57,167 @@
             color: #fbbf24;
             margin: 20px 0;
         }
-        
-        .log-box {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .log-entry {
-            padding: 8px 0;
-            border-bottom: 1px solid #334155;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-        }
-        
-        .success { color: #10b981; }
-        .error { color: #f87171; }
-        .info { color: #60a5fa; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <h1>🏪 CC-SHOP FINANZSYSTEM</h1>
-            <p>☁️ Daten werden auf GitHub gespeichert</p>
+            <p>📁 LOKALE VERSION - Kein Hosting nötig!</p>
         </div>
         
-        <!-- Configuration -->
         <div class="config-box">
-            <h3>⚙️ GitHub Konfiguration:</h3>
-            
-            <!-- ÄNDERE DIESE ZEILE: Ersetze "DEIN-USERNAME" -->
-            <input type="text" id="githubUser" 
-                   placeholder="Dein GitHub Username" 
-                   value="DEIN-USERNAME">
-            
-            <input type="text" id="repoName" 
-                   placeholder="Repository Name" 
-                   value="ccshop-finanz">
-            
-            <input type="password" id="githubToken" 
-                   placeholder="GitHub Token" 
-                   value="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">
-            
-            <button class="btn-save" onclick="saveConfig()">
-                ✅ Konfiguration speichern
-            </button>
-            
-            <div style="margin-top: 15px; padding: 10px; background: #0f172a; border-radius: 8px;">
-                <small>🔗 Repository URL:</small>
-                <div id="repoUrl" style="color: #60a5fa; word-break: break-all;"></div>
-            </div>
+            <h3>💾 So funktioniert's:</h3>
+            <p>1. Diese Datei auf deinem Computer speichern</p>
+            <p>2. Im Browser öffnen (Doppelklick)</p>
+            <p>3. Fertig! Daten werden lokal gespeichert</p>
         </div>
         
-        <!-- Balance -->
         <div class="balance-box">
-            <h2>💰 VERFÜGBARES GUTHABEN</h2>
+            <h2>💰 GUTHABEN</h2>
             <div class="balance-amount" id="balance">0 €</div>
-            <div id="status">🔴 Nicht verbunden</div>
+            <div id="status">Lokale Datenbank</div>
         </div>
         
-        <!-- Action Buttons -->
-        <button class="btn-load" onclick="loadFromGitHub()">
-            📥 VON GITHUB LADEN
-        </button>
+        <button onclick="addMoney(100)">➕ 100€ hinzufügen</button>
+        <button onclick="removeMoney(50)">➖ 50€ abziehen</button>
+        <button onclick="saveData()">💾 Speichern</button>
+        <button onclick="loadData()">📂 Laden</button>
+        <button onclick="exportData()">📤 Exportieren</button>
+        <button onclick="importData()">📥 Importieren</button>
         
-        <button class="btn-save" onclick="saveToGitHub()">
-            📤 ZU GITHUB SPEICHERN
-        </button>
-        
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0;">
-            <button class="btn-hold" onclick="addHold(100)">
-                ⏸️ 100€ zurückhalten
-            </button>
-            <button class="btn-deposit" onclick="addDeposit(500)">
-                ➕ 500€ einzahlen
-            </button>
-            <button class="btn-withdraw" onclick="addWithdraw(200)">
-                ➖ 200€ auszahlen
-            </button>
-        </div>
-        
-        <!-- Debug Info -->
-        <button onclick="testConnection()" style="background: #f59e0b;">
-            🔧 Verbindung testen
-        </button>
-        
-        <!-- Log -->
-        <div class="log-box">
-            <h3>📝 AKTIVITÄTS-LOG:</h3>
-            <div id="log"></div>
+        <div style="background: #1e293b; padding: 20px; border-radius: 10px; margin-top: 20px;">
+            <h3>📝 Transaktionen:</h3>
+            <div id="transactions"></div>
         </div>
     </div>
 
     <script>
-        // ==================== KONFIGURATION ====================
-        // DEINE DATEN - ÄNDERE HIER!
-        const DEFAULT_CONFIG = {
-            githubUser: "FreedomWorld1",  // ÄNDERN! Dein GitHub Username
-            repoName: "ccshop-finanz",    // Repository Name
-            githubToken: "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"  // Dein Token
-        };
-        
-        // ==================== DATENBANK ====================
+        // =========== DATENBANK ===========
         let database = {
-            balance: 0,
+            balance: 1000,
             transactions: [],
-            lastUpdated: new Date().toISOString(),
-            version: "1.0"
+            lastUpdated: new Date().toISOString()
         };
         
-        // ==================== HELPER FUNCTIONS ====================
-        function log(message, type = "info") {
-            const logDiv = document.getElementById("log");
-            const time = new Date().toLocaleTimeString("de-DE");
-            const entry = document.createElement("div");
-            entry.className = `log-entry ${type}`;
-            entry.textContent = `[${time}] ${message}`;
-            logDiv.appendChild(entry);
-            logDiv.scrollTop = logDiv.scrollHeight;
-            console.log(`[${type}]`, message);
-        }
-        
+        // =========== HELPER ===========
         function updateDisplay() {
-            document.getElementById("balance").textContent = `${database.balance} €`;
-            document.getElementById("status").textContent = 
-                `🔄 Zuletzt: ${new Date(database.lastUpdated).toLocaleTimeString("de-DE")}`;
-            document.getElementById("status").style.color = "#10b981";
+            document.getElementById('balance').textContent = `${database.balance} €`;
+            
+            const transactionsDiv = document.getElementById('transactions');
+            transactionsDiv.innerHTML = '';
+            
+            database.transactions.slice(-10).reverse().forEach(trans => {
+                const div = document.createElement('div');
+                div.style.padding = '10px';
+                div.style.margin = '5px 0';
+                div.style.background = '#0f172a';
+                div.style.borderRadius = '5px';
+                div.innerHTML = `
+                    <strong>${trans.amount}€</strong> - ${trans.type} 
+                    <span style="float:right;color:#94a3b8;">${trans.date || ''}</span>
+                `;
+                transactionsDiv.appendChild(div);
+            });
         }
         
-        function updateRepoUrl() {
-            const user = document.getElementById("githubUser").value;
-            const repo = document.getElementById("repoName").value;
-            document.getElementById("repoUrl").innerHTML = 
-                `🌐 <a href="https://github.com/${user}/${repo}" target="_blank" style="color:#60a5fa;">
-                https://github.com/${user}/${repo}</a>`;
-        }
-        
-        // ==================== GITHUB FUNKTIONEN ====================
-        async function githubRequest(url, method = "GET", body = null) {
-            const token = document.getElementById("githubToken").value;
-            
-            const options = {
-                method: method,
-                headers: {
-                    "Authorization": `token ${token}`,
-                    "Accept": "application/vnd.github.v3+json",
-                    "Content-Type": "application/json"
-                }
-            };
-            
-            if (body) {
-                options.body = JSON.stringify(body);
-            }
-            
-            try {
-                const response = await fetch(url, options);
-                
-                if (response.status === 404) {
-                    return { error: "NOT_FOUND", status: 404 };
-                }
-                
-                if (!response.ok) {
-                    throw new Error(`GitHub Fehler ${response.status}: ${response.statusText}`);
-                }
-                
-                return await response.json();
-            } catch (error) {
-                log(`❌ Netzwerkfehler: ${error.message}`, "error");
-                throw error;
-            }
-        }
-        
-        async function loadFromGitHub() {
-            const user = document.getElementById("githubUser").value;
-            const repo = document.getElementById("repoName").value;
-            
-            if (!user || !repo) {
-                log("❌ Bitte GitHub User und Repository eingeben!", "error");
-                return;
-            }
-            
-            try {
-                log("📥 Lade Daten von GitHub...", "info");
-                
-                const url = `https://api.github.com/repos/${user}/${repo}/contents/data.json`;
-                const result = await githubRequest(url);
-                
-                if (result.error === "NOT_FOUND") {
-                    log("⚠️ Keine Daten gefunden. Erstelle neue Datenbank...", "info");
-                    database = {
-                        balance: 1000,
-                        transactions: [],
-                        lastUpdated: new Date().toISOString(),
-                        version: "1.0"
-                    };
-                    updateDisplay();
-                    log("✅ Neue Datenbank erstellt mit 1000€ Startguthaben", "success");
-                    return;
-                }
-                
-                // Base64 dekodieren
-                const content = atob(result.content);
-                database = JSON.parse(content);
-                
-                log(`✅ Daten geladen: ${database.balance}€ Guthaben`, "success");
-                log(`📊 ${database.transactions.length} Transaktionen`, "info");
-                updateDisplay();
-                
-            } catch (error) {
-                log(`❌ Fehler beim Laden: ${error.message}`, "error");
-            }
-        }
-        
-        async function saveToGitHub() {
-            const user = document.getElementById("githubUser").value;
-            const repo = document.getElementById("repoName").value;
-            
-            if (!user || !repo) {
-                log("❌ Bitte GitHub User und Repository eingeben!", "error");
-                return;
-            }
-            
-            try {
-                log("📤 Speichere Daten zu GitHub...", "info");
-                
-                // SHA der existierenden Datei holen
-                const getUrl = `https://api.github.com/repos/${user}/${repo}/contents/data.json`;
-                let sha = null;
-                
-                try {
-                    const existing = await githubRequest(getUrl);
-                    if (existing && !existing.error) {
-                        sha = existing.sha;
-                    }
-                } catch (e) {
-                    // Datei existiert nicht, das ist OK
-                }
-                
-                // Daten aktualisieren
-                database.lastUpdated = new Date().toISOString();
-                const content = JSON.stringify(database, null, 2);
-                const encodedContent = btoa(unescape(encodeURIComponent(content)));
-                
-                // Hochladen
-                const putData = {
-                    message: `CC-Shop Update: ${new Date().toLocaleString("de-DE")}`,
-                    content: encodedContent
-                };
-                
-                if (sha) {
-                    putData.sha = sha;
-                }
-                
-                const result = await githubRequest(getUrl, "PUT", putData);
-                
-                log("✅ Daten erfolgreich auf GitHub gespeichert!", "success");
-                log(`🔗 Commit: ${result.commit.html_url}`, "info");
-                updateDisplay();
-                
-            } catch (error) {
-                log(`❌ Fehler beim Speichern: ${error.message}`, "error");
-            }
-        }
-        
-        async function testConnection() {
-            const user = document.getElementById("githubUser").value;
-            const repo = document.getElementById("repoName").value;
-            
-            if (!user || !repo) {
-                alert("❌ Bitte User und Repository eingeben!");
-                return;
-            }
-            
-            try {
-                log("🔧 Teste GitHub Verbindung...", "info");
-                
-                // Teste ob Repository existiert
-                const url = `https://api.github.com/repos/${user}/${repo}`;
-                const result = await githubRequest(url);
-                
-                if (result.error === "NOT_FOUND") {
-                    log("⚠️ Repository nicht gefunden. Erstelle es auf GitHub!", "error");
-                    alert(`❌ Repository nicht gefunden!\n\nErstelle zuerst:\nhttps://github.com/new\n\nName: ${repo}`);
-                } else {
-                    log("✅ Repository gefunden!", "success");
-                    log(`📁 Repository: ${result.full_name}`, "info");
-                    log(`📅 Erstellt: ${result.created_at}`, "info");
-                    alert(`✅ Verbindung OK!\n\nRepository: ${result.full_name}\n\nJetzt "Von GitHub laden" klicken!`);
-                }
-                
-            } catch (error) {
-                log(`❌ Verbindungstest fehlgeschlagen: ${error.message}`, "error");
-                alert(`❌ Fehler: ${error.message}\n\n1. Prüfe ob Repository existiert\n2. Prüfe ob Token korrekt ist`);
-            }
-        }
-        
-        // ==================== FINANZ FUNKTIONEN ====================
-        function addHold(amount) {
-            const today = new Date();
-            const releaseDate = new Date(today);
-            releaseDate.setDate(releaseDate.getDate() + 2);
-            
-            const transaction = {
-                id: Date.now(),
-                amount: amount,
-                type: "hold",
-                status: "pending",
-                date: today.toLocaleDateString("de-DE"),
-                purchaseDate: today.toISOString().split("T")[0],
-                releaseDate: releaseDate.toISOString().split("T")[0],
-                createdAt: new Date().toISOString()
-            };
-            
-            database.transactions.push(transaction);
-            log(`✅ ${amount}€ zurückgehalten (Freigabe: ${releaseDate.toLocaleDateString("de-DE")})`, "success");
-            updateDisplay();
-            saveToGitHub();
-        }
-        
-        function addDeposit(amount) {
+        // =========== FUNKTIONEN ===========
+        function addMoney(amount) {
             database.balance += amount;
-            
-            const transaction = {
-                id: Date.now(),
+            database.transactions.push({
+                type: 'deposit',
                 amount: amount,
-                type: "deposit",
-                status: "released",
-                date: new Date().toLocaleDateString("de-DE"),
-                createdAt: new Date().toISOString()
-            };
-            
-            database.transactions.push(transaction);
-            log(`✅ ${amount}€ eingezahlt. Neues Guthaben: ${database.balance}€`, "success");
+                date: new Date().toLocaleDateString('de-DE'),
+                time: new Date().toLocaleTimeString('de-DE')
+            });
             updateDisplay();
-            saveToGitHub();
+            saveData();
+            alert(`${amount}€ hinzugefügt!`);
         }
         
-        function addWithdraw(amount) {
+        function removeMoney(amount) {
             if (amount > database.balance) {
-                log(`❌ Nicht genug Guthaben! Verfügbar: ${database.balance}€`, "error");
-                alert(`❌ Nicht genug Guthaben!\nVerfügbar: ${database.balance}€`);
+                alert(`Nicht genug Guthaben! Verfügbar: ${database.balance}€`);
                 return;
             }
             
             database.balance -= amount;
-            
-            const transaction = {
-                id: Date.now(),
+            database.transactions.push({
+                type: 'withdrawal',
                 amount: amount,
-                type: "withdrawal",
-                status: "released",
-                date: new Date().toLocaleDateString("de-DE"),
-                createdAt: new Date().toISOString()
+                date: new Date().toLocaleDateString('de-DE'),
+                time: new Date().toLocaleTimeString('de-DE')
+            });
+            updateDisplay();
+            saveData();
+            alert(`${amount}€ abgezogen!`);
+        }
+        
+        function saveData() {
+            localStorage.setItem('ccshop_database', JSON.stringify(database));
+            alert('✅ Daten lokal gespeichert!');
+        }
+        
+        function loadData() {
+            const saved = localStorage.getItem('ccshop_database');
+            if (saved) {
+                database = JSON.parse(saved);
+                updateDisplay();
+                alert('✅ Daten geladen!');
+            } else {
+                alert('⚠️ Keine gespeicherten Daten gefunden');
+            }
+        }
+        
+        function exportData() {
+            const dataStr = JSON.stringify(database, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `ccshop_backup_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            alert('📤 Daten als JSON exportiert!');
+        }
+        
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        database = JSON.parse(e.target.result);
+                        updateDisplay();
+                        saveData();
+                        alert('✅ Daten importiert!');
+                    } catch (error) {
+                        alert('❌ Ungültige JSON Datei!');
+                    }
+                };
+                
+                reader.readAsText(file);
             };
             
-            database.transactions.push(transaction);
-            log(`✅ ${amount}€ ausgezahlt. Neues Guthaben: ${database.balance}€`, "success");
-            updateDisplay();
-            saveToGitHub();
+            input.click();
         }
         
-        function saveConfig() {
-            localStorage.setItem("ccshop_github_user", document.getElementById("githubUser").value);
-            localStorage.setItem("ccshop_repo_name", document.getElementById("repoName").value);
-            localStorage.setItem("ccshop_github_token", document.getElementById("githubToken").value);
-            log("✅ Konfiguration gespeichert", "success");
-            updateRepoUrl();
-        }
-        
-        // ==================== INITIALISIERUNG ====================
+        // =========== START ===========
         function init() {
-            log("🚀 CC-Shop Finanzsystem gestartet", "info");
-            
-            // Config laden
-            const savedUser = localStorage.getItem("ccshop_github_user") || DEFAULT_CONFIG.githubUser;
-            const savedRepo = localStorage.getItem("ccshop_repo_name") || DEFAULT_CONFIG.repoName;
-            const savedToken = localStorage.getItem("ccshop_github_token") || DEFAULT_CONFIG.githubToken;
-            
-            document.getElementById("githubUser").value = savedUser;
-            document.getElementById("repoName").value = savedRepo;
-            document.getElementById("githubToken").value = savedToken;
-            
-            updateRepoUrl();
+            loadData();
             updateDisplay();
             
-            // Automatisch alle 3 Minuten speichern
-            setInterval(() => {
-                if (document.getElementById("githubUser").value) {
-                    saveToGitHub();
-                }
-            }, 3 * 60 * 1000);
+            // Auto-save alle 30 Sekunden
+            setInterval(saveData, 30000);
             
-            log("✅ System bereit. Klicke 'Von GitHub laden'", "success");
+            console.log('🚀 CC-Shop gestartet');
         }
         
-        // Starte das System
         init();
     </script>
 </body>
